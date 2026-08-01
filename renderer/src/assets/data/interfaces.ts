@@ -148,6 +148,7 @@ export interface TranslationDict {
   CORRUPTED: string
   UNIDENTIFIED: string
   ITEM_SUPERIOR: RegExp
+  ITEM_VESTIGIAL: RegExp
   MAP_BLIGHTED: RegExp
   MAP_BLIGHT_RAVAGED: RegExp
   INFLUENCE_SHAPER: string
@@ -200,6 +201,7 @@ export interface TranslationDict {
   CRAFTED_PREFIX: string
   CRAFTED_SUFFIX: string
   IMPLICIT_MODIFIER: string
+  VESTIGIAL_IMPLICIT: string
   FRACTURED_PREFIX: string
   FRACTURED_SUFFIX: string
   UNSCALABLE_VALUE: string

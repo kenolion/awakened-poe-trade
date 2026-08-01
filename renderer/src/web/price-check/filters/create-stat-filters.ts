@@ -37,10 +37,13 @@ export function createExactStatFilters (
   const keepByType = [ModifierType.Pseudo, ModifierType.Fractured, ModifierType.Enchant, ModifierType.Necropolis, ModifierType.Imbued]
 
   if (
-    !item.influences.length &&
-    !item.isFractured &&
-    item.category !== ItemCategory.Tincture &&
-    item.category !== ItemCategory.Idol
+    item.isVestigial ||
+    (
+      !item.influences.length &&
+      !item.isFractured &&
+      item.category !== ItemCategory.Tincture &&
+      item.category !== ItemCategory.Idol
+    )
   ) {
     keepByType.push(ModifierType.Implicit)
   }

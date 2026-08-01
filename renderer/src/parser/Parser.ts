@@ -139,6 +139,18 @@ function itemTextToSections (text: string) {
 }
 
 function normalizeName (item: ParserState) {
+  const vestigial = item.baseType
+    ? _$.ITEM_VESTIGIAL.exec(item.baseType)
+    : _$.ITEM_VESTIGIAL.exec(item.name)
+  if (vestigial) {
+    if (item.baseType) {
+      item.baseType = vestigial[1]
+    } else {
+      item.name = vestigial[1]
+    }
+    item.isVestigial = true
+  }
+
   if (item.rarity === ItemRarity.Magic) {
     const baseType = magicBasetype(item.name)
     if (baseType) {

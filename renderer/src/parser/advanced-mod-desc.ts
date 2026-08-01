@@ -55,6 +55,7 @@ export function parseModInfoLine (line: string): ModifierInfo {
 
     switch (match.groups!.type) {
       case _$.IMPLICIT_MODIFIER:
+      case _$.VESTIGIAL_IMPLICIT:
       case _$.CORRUPTED_IMPLICIT:
         type = ModifierType.Implicit; break
       case _$.FRACTURED_PREFIX:

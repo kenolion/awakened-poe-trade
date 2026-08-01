@@ -28,6 +28,7 @@ export default {
   SOCKETS: 'Гнезда: ',
   QUALITY: 'Качество: ',
   MEMORY_STRANDS: 'Пряди воспоминаний: ',
+  MERCENARY_BUILD: 'Build: ',
   PHYSICAL_DAMAGE: 'Физический урон: ',
   ELEMENTAL_DAMAGE: 'Урон от стихий: ',
   CRIT_CHANCE: 'Шанс критического удара: ',

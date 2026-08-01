@@ -41,6 +41,7 @@ const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   { virtual: findInDatabase },
   // -----------
   parseItemLevel,
+  parseMercenaryWarrant,
   parseTalismanTier,
   parseGem,
   parseArmour,
@@ -483,6 +484,19 @@ function parseItemLevel (section: string[], item: ParsedItem) {
       return 'SECTION_PARSED'
     }
   }
+  return 'SECTION_SKIPPED'
+}
+
+function parseMercenaryWarrant (section: string[], item: ParsedItem) {
+  if (item.info.refName !== 'Mercenary Warrant') return 'PARSER_SKIPPED'
+
+  for (const line of section) {
+    if (line.startsWith(_$.MERCENARY_BUILD)) {
+      item.mercenaryBuild = line.slice(_$.MERCENARY_BUILD.length)
+      return 'SECTION_PARSED'
+    }
+  }
+
   return 'SECTION_SKIPPED'
 }
 

@@ -541,8 +541,17 @@ export function createTradeRequest (filters: ItemFilters, stats: StatFilter[]) {
   }
 
   type BareStatFilter = Omit<StatFilter, 'statRef' | 'text' | 'tag' | 'sources'>
-  const realStats: BareStatFilter[] = stats.filter(stat =>
-    !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]))
+  const mercenaryGroups = new Map<number, StatFilter[]>()
+  const realStats: BareStatFilter[] = stats.filter(stat => {
+    if (stat.mercenaryGroup != null) {
+      const group = mercenaryGroups.get(stat.mercenaryGroup) ?? []
+      group.push(stat)
+      mercenaryGroups.set(stat.mercenaryGroup, group)
+      return false
+    }
+
+    return !INTERNAL_TRADE_IDS.includes(stat.tradeId[0])
+  })
   if (filters.veiled) {
     for (const statRef of filters.veiled.statRefs) {
       const statOrGroup = STAT_BY_REF_V2(statRef)!
@@ -566,6 +575,19 @@ export function createTradeRequest (filters: ItemFilters, stats: StatFilter[]) {
   }
 
   const qAnd = query.stats[0]
+  for (const group of mercenaryGroups.values()) {
+    const active = group.filter(stat => !stat.disabled)
+    if (!active.length) continue
+
+    query.stats.push({
+      type: 'count',
+      value: { min: active.length, max: active.length },
+      filters: active.map(stat =>
+        tradeIdToQuery(stat.tradeId[0], stat)
+      )
+    })
+  }
+
   const qNot: TradeRequest['query']['stats'][number] = {
     type: 'not',
     filters: []

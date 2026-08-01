@@ -1,5 +1,6 @@
 import { createFilters } from './create-item-filters'
 import { createExactStatFilters, initUiModFilters } from './create-stat-filters'
+import { createMercenaryFilters } from './mercenary-filters'
 import { ModifierType, sumStatsByModType } from '@/parser/modifiers'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import type { FilterPreset } from './interfaces'
@@ -49,7 +50,10 @@ export function createPresets (
       presets: [{
         id: 'filters.preset_exact',
         filters: createFilters(item, { ...opts, exact: true }),
-        stats: createExactStatFilters(item, item.statsByType, opts)
+        stats: [
+          ...createExactStatFilters(item, item.statsByType, opts),
+          ...createMercenaryFilters(item)
+        ]
       }]
     }
   }

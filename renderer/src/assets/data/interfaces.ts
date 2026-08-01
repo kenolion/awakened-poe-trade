@@ -136,6 +136,7 @@ export interface TranslationDict {
   SOCKETS: string
   QUALITY: string
   MEMORY_STRANDS: string
+  MERCENARY_BUILD: string
   PHYSICAL_DAMAGE: string
   ELEMENTAL_DAMAGE: string
   CRIT_CHANCE: string

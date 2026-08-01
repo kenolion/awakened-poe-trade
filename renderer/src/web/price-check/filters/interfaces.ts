@@ -123,6 +123,7 @@ export interface StatFilter {
     value: number // NOTE: mutable in UI
   }
   or?: true
+  mercenaryGroup?: number
   hidden?: string
   disabled: boolean // NOTE: mutable in UI
 }

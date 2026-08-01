@@ -10,6 +10,7 @@ import { mapProps, valdoBadMods } from './pseudo/maps'
 import { applyFlaskHybridMod } from './pseudo/flasks'
 import { applyHeistRules } from './pseudo/heist'
 import { decodeOils, applyAnointmentRules } from './pseudo/anointments'
+import { createTimelessJewelVariantFilter } from './timeless-jewels'
 import { StatBetter, CLIENT_STRINGS } from '@/assets/data'
 
 export interface FiltersCreationContext {
@@ -79,7 +80,7 @@ export function createExactStatFilters (
   valdoBadMods(ctx)
 
   ctx.filters.push(
-    ...ctx.statsByType.map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
+    ...ctx.statsByType.flatMap(mod => createModFilters(mod, ctx.searchInRange, item))
   )
 
   if (item.info.refName === 'Chronicle of Atzoatl') {
@@ -138,6 +139,7 @@ export function createExactStatFilters (
     enableGoodRolledFilters(ctx.filters, 0.66)
   }
 
+  disableOrFilters(ctx.filters)
   return ctx.filters
 }
 
@@ -179,7 +181,7 @@ export function initUiModFilters (
   }
 
   ctx.filters.push(
-    ...ctx.statsByType.map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
+    ...ctx.statsByType.flatMap(mod => createModFilters(mod, ctx.searchInRange, item))
   )
 
   if (item.isVeiled) {
@@ -187,6 +189,7 @@ export function initUiModFilters (
   }
 
   finalFilterTweaks(ctx)
+  disableOrFilters(ctx.filters)
 
   return ctx.filters
 }
@@ -359,6 +362,22 @@ export function calculatedStatToFilter (
   hideNotVariableStat(filter, item)
 
   return filter
+}
+
+function createModFilters (
+  mod: StatCalculated,
+  percent: number,
+  item: ParsedItem
+): StatFilter[] {
+  const filter = calculatedStatToFilter(mod, percent, item)
+  const timelessVariant = createTimelessJewelVariantFilter(filter, mod)
+  return timelessVariant ? [filter, timelessVariant] : [filter]
+}
+
+function disableOrFilters (filters: StatFilter[]) {
+  for (const filter of filters) {
+    if (filter.or) filter.disabled = true
+  }
 }
 
 function hideNotVariableStat (filter: StatFilter, item: ParsedItem) {

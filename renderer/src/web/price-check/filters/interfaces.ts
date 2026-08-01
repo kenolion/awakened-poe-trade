@@ -122,6 +122,7 @@ export interface StatFilter {
   option?: {
     value: number // NOTE: mutable in UI
   }
+  or?: true
   hidden?: string
   disabled: boolean // NOTE: mutable in UI
 }

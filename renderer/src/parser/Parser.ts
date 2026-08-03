@@ -14,26 +14,21 @@ import { IncursionRoom, ParsedItem, ItemInfluence, ItemRarity } from './ParsedIt
 import { magicBasetype } from './magic-name'
 import { isModInfoLine, groupLinesByMod, parseModInfoLine, parseModType, ModifierInfo, ParsedModifier, ENCHANT_LINE, SCOURGE_LINE, IMPLICIT_LINE } from './advanced-mod-desc'
 import { calcPropPercentile, QUALITY_STATS } from './calc-q20'
-
-type SectionParseResult =
-  | 'SECTION_PARSED'
-  | 'SECTION_SKIPPED'
-  | 'PARSER_SKIPPED'
-
-type ParserFn = (section: string[], item: ParserState) => SectionParseResult
-type VirtualParserFn = (item: ParserState) => Result<never, string> | void
-
-interface ParserState extends ParsedItem {
-  name: string
-  baseType: string | undefined
-  infoVariants: BaseType[]
-}
+import {
+  getSectionParsers,
+  getVirtualParsers,
+  type ParserFn,
+  type ParserState,
+  type SectionParseResult,
+  type VirtualParserFn
+} from './extensions'
 
 const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   parseUnidentified,
   { virtual: parseSuperior },
   { virtual: parseFoulborn },
   { virtual: parseVestigial },
+  ...getVirtualParsers().map(virtual => ({ virtual })),
   parseSynthesised,
   parseCategoryByHelpText,
   { virtual: parseMapTier },
@@ -42,7 +37,7 @@ const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   { virtual: findInDatabase },
   // -----------
   parseItemLevel,
-  parseMercenaryWarrant,
+  ...getSectionParsers(),
   parseTalismanTier,
   parseGem,
   parseArmour,
@@ -477,19 +472,6 @@ function parseItemLevel (section: string[], item: ParsedItem) {
       return 'SECTION_PARSED'
     }
   }
-  return 'SECTION_SKIPPED'
-}
-
-function parseMercenaryWarrant (section: string[], item: ParsedItem) {
-  if (item.info.refName !== 'Mercenary Warrant') return 'PARSER_SKIPPED'
-
-  for (const line of section) {
-    if (line.startsWith(_$.MERCENARY_BUILD)) {
-      item.mercenaryBuild = line.slice(_$.MERCENARY_BUILD.length)
-      return 'SECTION_PARSED'
-    }
-  }
-
   return 'SECTION_SKIPPED'
 }
 

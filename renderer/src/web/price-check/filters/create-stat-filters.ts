@@ -10,7 +10,7 @@ import { mapProps, valdoBadMods } from './pseudo/maps'
 import { applyFlaskHybridMod } from './pseudo/flasks'
 import { applyHeistRules } from './pseudo/heist'
 import { decodeOils, applyAnointmentRules } from './pseudo/anointments'
-import { createTimelessJewelVariantFilter } from './timeless-jewels'
+import { disableExtensionFilters, getAdditionalStatFilters } from '../extensions'
 import { StatBetter, CLIENT_STRINGS } from '@/assets/data'
 
 export interface FiltersCreationContext {
@@ -85,10 +85,12 @@ export function createExactStatFilters (
 
   if (item.info.refName === 'Chronicle of Atzoatl') {
     applyAtzoatlRules(ctx.filters)
+    disableExtensionFilters(ctx.filters)
     return ctx.filters
   }
   if (item.info.refName === 'Mirrored Tablet') {
     applyMirroredTabletRules(ctx.filters)
+    disableExtensionFilters(ctx.filters)
     return ctx.filters
   }
   if (item.category === ItemCategory.Map) {
@@ -97,6 +99,7 @@ export function createExactStatFilters (
         filter.disabled = false
       }
     }
+    disableExtensionFilters(ctx.filters)
     return ctx.filters
   }
 
@@ -139,7 +142,7 @@ export function createExactStatFilters (
     enableGoodRolledFilters(ctx.filters, 0.66)
   }
 
-  disableOrFilters(ctx.filters)
+  disableExtensionFilters(ctx.filters)
   return ctx.filters
 }
 
@@ -189,7 +192,7 @@ export function initUiModFilters (
   }
 
   finalFilterTweaks(ctx)
-  disableOrFilters(ctx.filters)
+  disableExtensionFilters(ctx.filters)
 
   return ctx.filters
 }
@@ -374,14 +377,7 @@ function createModFilters (
   item: ParsedItem
 ): StatFilter[] {
   const filter = calculatedStatToFilter(mod, percent, item)
-  const timelessVariant = createTimelessJewelVariantFilter(filter, mod)
-  return timelessVariant ? [filter, timelessVariant] : [filter]
-}
-
-function disableOrFilters (filters: StatFilter[]) {
-  for (const filter of filters) {
-    if (filter.or) filter.disabled = true
-  }
+  return [filter, ...getAdditionalStatFilters(filter, mod, item)]
 }
 
 function hideNotVariableStat (filter: StatFilter, item: ParsedItem) {

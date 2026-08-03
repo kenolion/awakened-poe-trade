@@ -1,6 +1,6 @@
 import { createFilters } from './create-item-filters'
 import { createExactStatFilters, initUiModFilters } from './create-stat-filters'
-import { createMercenaryFilters } from './mercenary-filters'
+import { getAdditionalExactPresetStats, type PresetCreationOptions } from '../extensions'
 import { ModifierType, sumStatsByModType } from '@/parser/modifiers'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import type { FilterPreset } from './interfaces'
@@ -9,14 +9,7 @@ const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V']
 
 export function createPresets (
   item: ParsedItem,
-  opts: {
-    league: string
-    currency: string | undefined
-    collapseListings: 'app' | 'api'
-    activateStockFilter: boolean
-    searchStatRange: number
-    useEn: boolean
-  }
+  opts: PresetCreationOptions
 ): { presets: FilterPreset[], active: string } {
   if (item.info.refName === 'Expedition Logbook') {
     return {
@@ -52,7 +45,7 @@ export function createPresets (
         filters: createFilters(item, { ...opts, exact: true }),
         stats: [
           ...createExactStatFilters(item, item.statsByType, opts),
-          ...createMercenaryFilters(item)
+          ...getAdditionalExactPresetStats(item, opts)
         ]
       }]
     }

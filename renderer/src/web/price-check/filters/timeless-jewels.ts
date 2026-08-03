@@ -50,7 +50,11 @@ export function createTimelessJewelVariantFilter (
     text: textLines.join('\n'),
     roll: cloneRoll(filter.roll),
     disabled: true,
-    or: true
+    or: true,
+    extension: {
+      id: 'timeless-jewel-variant',
+      disabled: true
+    }
   }
 }
 

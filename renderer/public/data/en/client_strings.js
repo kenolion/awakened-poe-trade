@@ -28,7 +28,6 @@ export default {
   SOCKETS: 'Sockets: ',
   QUALITY: 'Quality: ',
   MEMORY_STRANDS: 'Memory Strands: ',
-  MERCENARY_BUILD: 'Build: ',
   PHYSICAL_DAMAGE: 'Physical Damage: ',
   ELEMENTAL_DAMAGE: 'Elemental Damage: ',
   CRIT_CHANCE: 'Critical Strike Chance: ',

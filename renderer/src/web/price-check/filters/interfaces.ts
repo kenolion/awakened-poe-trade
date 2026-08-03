@@ -125,6 +125,10 @@ export interface StatFilter {
   }
   or?: true
   mercenaryGroup?: number
+  extension?: {
+    id: string
+    disabled?: boolean
+  }
   hidden?: string
   disabled: boolean // NOTE: mutable in UI
 }

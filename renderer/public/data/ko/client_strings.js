@@ -28,7 +28,6 @@ export default {
   SOCKETS: '홈: ',
   QUALITY: '퀄리티: ',
   MEMORY_STRANDS: '기억 가닥: ',
-  MERCENARY_BUILD: 'Build: ',
   PHYSICAL_DAMAGE: '물리 피해: ',
   ELEMENTAL_DAMAGE: '원소 피해: ',
   CRIT_CHANCE: '치명타 확률: ',

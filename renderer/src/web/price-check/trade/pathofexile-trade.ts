@@ -1,5 +1,6 @@
 import { ItemInfluence, ItemCategory } from '@/parser'
 import { ItemFilters, StatFilter, INTERNAL_TRADE_IDS, InternalTradeId } from '../filters/interfaces'
+import { applyTradeQueryExtensions } from '../extensions'
 import { setProperty as propSet } from 'dot-prop'
 import { DateTime } from 'luxon'
 import { Host } from '@/web/background/IPC'
@@ -83,7 +84,7 @@ const INFLUENCE_PSEUDO_TEXT = {
 interface FilterBoolean { option?: 'true' | 'false' }
 interface FilterRange { min?: number, max?: number }
 
-interface TradeRequest {
+export interface TradeRequest {
   query: {
     status: { option: 'online' | 'securable' | 'available' | 'any' }
     name?: string | { discriminator: string, option: string }
@@ -540,18 +541,14 @@ export function createTradeRequest (filters: ItemFilters, stats: StatFilter[]) {
     }
   }
 
-  type BareStatFilter = Omit<StatFilter, 'statRef' | 'text' | 'tag' | 'sources'>
-  const mercenaryGroups = new Map<number, StatFilter[]>()
-  const realStats: BareStatFilter[] = stats.filter(stat => {
-    if (stat.mercenaryGroup != null) {
-      const group = mercenaryGroups.get(stat.mercenaryGroup) ?? []
-      group.push(stat)
-      mercenaryGroups.set(stat.mercenaryGroup, group)
-      return false
-    }
+  const extendedStats = applyTradeQueryExtensions({
+    query,
+    toQuery: tradeIdToQuery
+  }, stats)
 
-    return !INTERNAL_TRADE_IDS.includes(stat.tradeId[0])
-  })
+  type BareStatFilter = Omit<StatFilter, 'statRef' | 'text' | 'tag' | 'sources'>
+  const realStats: BareStatFilter[] = extendedStats.filter(stat =>
+    !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]))
   if (filters.veiled) {
     for (const statRef of filters.veiled.statRefs) {
       const statOrGroup = STAT_BY_REF_V2(statRef)!
@@ -575,19 +572,6 @@ export function createTradeRequest (filters: ItemFilters, stats: StatFilter[]) {
   }
 
   const qAnd = query.stats[0]
-  for (const group of mercenaryGroups.values()) {
-    const active = group.filter(stat => !stat.disabled)
-    if (!active.length) continue
-
-    query.stats.push({
-      type: 'count',
-      value: { min: active.length, max: active.length },
-      filters: active.map(stat =>
-        tradeIdToQuery(stat.tradeId[0], stat)
-      )
-    })
-  }
-
   const qNot: TradeRequest['query']['stats'][number] = {
     type: 'not',
     filters: []

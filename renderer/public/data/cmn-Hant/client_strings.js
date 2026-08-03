@@ -28,7 +28,6 @@ export default {
   SOCKETS: '插槽: ',
   QUALITY: '品質: ',
   MEMORY_STRANDS: '記憶絲縷: ',
-  MERCENARY_BUILD: 'Build: ',
   PHYSICAL_DAMAGE: '物理傷害: ',
   ELEMENTAL_DAMAGE: '元素傷害: ',
   CRIT_CHANCE: '暴擊率: ',

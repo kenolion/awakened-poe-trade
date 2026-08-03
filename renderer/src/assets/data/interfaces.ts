@@ -63,7 +63,8 @@ export interface BaseType {
     'CAPTURED_BEAST' |
     'UNIQUE' |
     'ITEM' |
-    'GEM'
+    'GEM' |
+    'AREA'
   )
   icon: string
   w?: number
@@ -149,7 +150,6 @@ export interface TranslationDict {
   CORRUPTED: string
   UNIDENTIFIED: string
   ITEM_SUPERIOR: RegExp
-  ITEM_VESTIGIAL: RegExp
   MAP_BLIGHTED: RegExp
   MAP_BLIGHT_RAVAGED: RegExp
   INFLUENCE_SHAPER: string
@@ -202,7 +202,6 @@ export interface TranslationDict {
   CRAFTED_PREFIX: string
   CRAFTED_SUFFIX: string
   IMPLICIT_MODIFIER: string
-  VESTIGIAL_IMPLICIT: string
   FRACTURED_PREFIX: string
   FRACTURED_SUFFIX: string
   UNSCALABLE_VALUE: string
@@ -234,6 +233,9 @@ export interface TranslationDict {
   UNMODIFIABLE: string
   FOULBORN_NAME: RegExp
   FOULBORN_MODIFIER: string
+  VESTIGIAL_NAME: RegExp
+  VESTIGIAL_IMPLICIT: string
+  SCRYING_MAP_AREA: string
   // ---
   CHAT_SYSTEM: RegExp
   CHAT_TRADE: RegExp

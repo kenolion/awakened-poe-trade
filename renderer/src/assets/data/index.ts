@@ -1,6 +1,5 @@
 import fnv1a from '@sindresorhus/fnv1a'
 import type { BaseType, DropEntry, Stat, StatOrGroup, StatMatcher, TranslationDict } from './interfaces'
-import { CLIENT_STRING_OVERRIDES, ITEM_OVERRIDES } from './overrides'
 
 export * from './interfaces'
 
@@ -80,55 +79,29 @@ async function loadItems (language: string) {
   const INDEX_WIDTH = 2
   const indexNames = new Uint32Array(await (await fetch(`${import.meta.env.BASE_URL}data/${language}/items-name.index.bin`)).arrayBuffer())
   const indexRefNames = new Uint32Array(await (await fetch(`${import.meta.env.BASE_URL}data/${language}/items-ref.index.bin`)).arrayBuffer())
-  const overrides = ITEM_OVERRIDES[language] ?? ITEM_OVERRIDES.en ?? []
 
   function commonFind (index: Uint32Array, prop: 'name' | 'refName') {
     return function (ns: BaseType['namespace'], name: string): BaseType[] | undefined {
-      const overridden = overrides.filter(record =>
-        record.namespace === ns && record[prop] === name
-      )
-
       let start = dataBinarySearch(index, Number(fnv1a(`${ns}::${name}`, { size: 32 })), 0, INDEX_WIDTH)
-      const baseRecords: BaseType[] = []
-      if (start !== -1) {
-        start = index[start * INDEX_WIDTH + 1]
-        while (start !== ndjson.length) {
-          const end = ndjson.indexOf('\n', start)
-          const record = JSON.parse(ndjson.slice(start, end)) as BaseType
-          if (record.namespace === ns && record[prop] === name) {
-            baseRecords.push(record)
-            if (!record.disc && !record.unique) break
-          } else { break }
-          start = end + 1
-        }
+      if (start === -1) return undefined
+      start = index[start * INDEX_WIDTH + 1]
+      const out: BaseType[] = []
+      while (start !== ndjson.length) {
+        const end = ndjson.indexOf('\n', start)
+        const record = JSON.parse(ndjson.slice(start, end)) as BaseType
+        if (record.namespace === ns && record[prop] === name) {
+          out.push(record)
+          if (!record.disc && !record.unique) break
+        } else { break }
+        start = end + 1
       }
-
-      const baseRefs = new Set(baseRecords.map(record =>
-        `${record.namespace}::${record.refName}`
-      ))
-      const out = [
-        ...baseRecords,
-        ...overridden.filter(record =>
-          !baseRefs.has(`${record.namespace}::${record.refName}`)
-        )
-      ]
-      return out.length ? out : undefined
+      return out
     }
   }
 
   ITEM_BY_TRANSLATED = commonFind(indexNames, 'name')
   ITEM_BY_REF = commonFind(indexRefNames, 'refName')
-
-  const baseItemsIterator = ndjsonFindLines<BaseType>(ndjson)
-  ITEMS_ITERATOR = function * (includes, andIncludes = []) {
-    for (const item of overrides) {
-      const serialized = JSON.stringify(item)
-      if (serialized.includes(includes) && andIncludes.every(str => serialized.includes(str))) {
-        yield item
-      }
-    }
-    yield * baseItemsIterator(includes, andIncludes)
-  }
+  ITEMS_ITERATOR = ndjsonFindLines<BaseType>(ndjson)
   ALTQ_GEM_NAMES = itemNamesFromLines(ITEMS_ITERATOR('altQuality":["Anomalous'))
   REPLICA_UNIQUE_NAMES = itemNamesFromLines(ITEMS_ITERATOR('refName":"Replica'))
 }
@@ -217,11 +190,7 @@ export function stat (text: string) {
 }
 
 export async function init (lang: string) {
-  const clientStringsRef = (await import(/* @vite-ignore */`${import.meta.env.BASE_URL}data/en/client_strings.js`)).default as TranslationDict
-  CLIENT_STRINGS_REF = {
-    ...(CLIENT_STRING_OVERRIDES.en ?? {}),
-    ...clientStringsRef
-  }
+  CLIENT_STRINGS_REF = (await import(/* @vite-ignore */`${import.meta.env.BASE_URL}data/en/client_strings.js`)).default
   ITEM_DROP = await (await fetch(`${import.meta.env.BASE_URL}data/item-drop.json`)).json()
   APP_PATRONS = await (await fetch(`${import.meta.env.BASE_URL}data/patrons.json`)).json()
 
@@ -248,11 +217,7 @@ export async function init (lang: string) {
 }
 
 export async function loadForLang (lang: string) {
-  const clientStrings = (await import(/* @vite-ignore */`${import.meta.env.BASE_URL}data/${lang}/client_strings.js`)).default as TranslationDict
-  CLIENT_STRINGS = {
-    ...(CLIENT_STRING_OVERRIDES[lang] ?? {}),
-    ...clientStrings
-  }
+  CLIENT_STRINGS = (await import(/* @vite-ignore */`${import.meta.env.BASE_URL}data/${lang}/client_strings.js`)).default
   await loadItems(lang)
   await loadStats(lang)
 }

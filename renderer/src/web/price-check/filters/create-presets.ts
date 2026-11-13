@@ -1,15 +1,19 @@
-import { createFilters } from './create-item-filters'
+import { createFilters, CreateOptions as CreateFiltersOptions } from './create-item-filters'
 import { createExactStatFilters, initUiModFilters } from './create-stat-filters'
-import { getAdditionalExactPresetStats, type PresetCreationOptions } from '../extensions'
+import { createMercenaryFilters } from './pseudo/mercenary'
 import { ModifierType, sumStatsByModType } from '@/parser/modifiers'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import type { FilterPreset } from './interfaces'
 
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V']
 
+type CreatePresetsOptions =
+  & Omit<CreateFiltersOptions, 'exact'>
+  & { searchStatRange: number }
+
 export function createPresets (
   item: ParsedItem,
-  opts: PresetCreationOptions
+  opts: CreatePresetsOptions
 ): { presets: FilterPreset[], active: string } {
   if (item.info.refName === 'Expedition Logbook') {
     return {
@@ -19,6 +23,15 @@ export function createPresets (
         filters: createFilters(item, { ...opts, exact: true }),
         stats: createExactStatFilters(item, sumStatsByModType(area), opts)
       }))
+    }
+  } else if (item.info.refName === 'Mercenary Warrant') {
+    return {
+      active: 'filters.preset_exact',
+      presets: [{
+        id: 'filters.preset_exact',
+        filters: createFilters(item, { ...opts, exact: true }),
+        stats: createMercenaryFilters(item)
+      }]
     }
   }
 
@@ -36,17 +49,41 @@ export function createPresets (
     item.category === ItemCategory.Invitation ||
     item.category === ItemCategory.HeistContract ||
     item.category === ItemCategory.HeistBlueprint ||
+    item.category === ItemCategory.Chart ||
     item.category === ItemCategory.Sentinel
   ) {
+    if (item.rarity !== ItemRarity.Unique && (
+      (item.category === ItemCategory.Map && !item.mapCompletionReward) ||
+      item.category === ItemCategory.Chart
+    )) {
+      const bulkPreset: FilterPreset = {
+        id: 'filters.preset_bulk',
+        filters: createFilters(item, { ...opts, exact: true }),
+        stats: createExactStatFilters(item, item.statsByType, { ...opts, mode: 'bulk' })
+      }
+      if (item.rarity === ItemRarity.Rare && !item.isUnidentified && !item.info.area?.blighted) {
+        const propsPreset: FilterPreset = {
+          id: 'filters.preset_pseudo',
+          filters: createFilters(item, { ...opts, exact: true }),
+          stats: createExactStatFilters(item, item.statsByType, { ...opts, mode: 'props' })
+        }
+        return {
+          active: (item.category === ItemCategory.Chart && item.mapArea!.area!.special)
+            ? bulkPreset.id
+            : propsPreset.id,
+          presets: [propsPreset, bulkPreset]
+        }
+      } else {
+        return { active: bulkPreset.id, presets: [bulkPreset] }
+      }
+    }
+
     return {
       active: 'filters.preset_exact',
       presets: [{
         id: 'filters.preset_exact',
         filters: createFilters(item, { ...opts, exact: true }),
-        stats: [
-          ...createExactStatFilters(item, item.statsByType, opts),
-          ...getAdditionalExactPresetStats(item, opts)
-        ]
+        stats: createExactStatFilters(item, item.statsByType, opts)
       }]
     }
   }
